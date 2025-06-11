@@ -18,9 +18,12 @@ app = Flask(__name__)
 CORS(app, origins=["*"], supports_credentials=True)
 
 # Configuration from .env
-DATABASE_URL = os.getenv("DATABASE_URL")
-UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER", "./uploads")
-MAX_ANONYMOUS_UPLOADS = int(os.getenv("MAX_ANONYMOUS_UPLOADS", 3))
+# Ganti dengan nilai database Anda yang sebenarnya
+DATABASE_URL = "postgresql://bingouser:bingoAPI123@103.250.10.132:5432/bingo"
+# Ganti dengan folder upload yang Anda inginkan
+UPLOAD_FOLDER = "./uploads"
+# Batas upload untuk pengguna anonim
+MAX_ANONYMOUS_UPLOADS = 3
 
 # Ensure upload folder exists
 if not os.path.exists(UPLOAD_FOLDER):
@@ -108,7 +111,7 @@ def predict():
         # Check upload limits for anonymous users
         if not user_uid:
             cursor.execute(
-                "SELECT COUNT(*) FROM analyze WHERE ip_user = %s AND created_at >= NOW() - INTERVAL '24 hours'",
+                "SELECT COUNT(*) FROM bingo_analyze WHERE ip_user = %s AND created_at >= NOW() - INTERVAL '24 hours'",
                 (ip_user,)
             )
             upload_count = cursor.fetchone()[0]
@@ -152,7 +155,7 @@ def predict():
         # If user_uid is None, psycopg2 will insert NULL
         cursor.execute(
             """
-            INSERT INTO analyze (analyze_uid, user_uid, ip_user, description, image, created_at, update_at)
+            INSERT INTO bingo_analyze (analyze_uid, user_uid, ip_user, description, image, created_at, update_at)
             VALUES (%s, %s, %s, %s, %s, %s, %s)
             """,
             (
@@ -200,7 +203,7 @@ def get_history():
     try:
         cursor.execute(
             "SELECT analyze_id, analyze_uid, user_uid, ip_user, description, image, created_at, update_at "
-            "FROM analyze WHERE user_uid = %s ORDER BY created_at DESC",
+            "FROM bingo_analyze WHERE user_uid = %s ORDER BY created_at DESC",
             (user_uid,)
         )
         history_records = cursor.fetchall()
