@@ -3,3 +3,5 @@ tensorflow
 Pillow
 numpy
 gunicorn
+psycopg2-binary
+python-dotenv
