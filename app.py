@@ -189,7 +189,7 @@ def predict():
         # If user_uid is None, psycopg2 will insert NULL
         cursor.execute(
             """
-            INSERT INTO bingo_analyze (analyze_uid, user_uid, ip_user, description, image, created_at, update_at, kategori, disposalSteps)
+            INSERT INTO bingo_analyze (analyze_uid, user_uid, ip_user, description, image, created_at, update_at, kategori, disposalsteps)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
             """,
             (
@@ -240,7 +240,7 @@ def get_history():
     cursor = conn.cursor()
     try:
         cursor.execute(
-            "SELECT analyze_id, analyze_uid, user_uid, ip_user, description, image, created_at, update_at, kategori, disposalSteps"
+            "SELECT analyze_id, analyze_uid, user_uid, ip_user, description, image, created_at, update_at, kategori, disposalsteps"
             "FROM bingo_analyze WHERE user_uid = %s ORDER BY created_at DESC",
             (user_uid,)
         )
