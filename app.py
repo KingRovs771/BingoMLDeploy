@@ -181,7 +181,7 @@ def predict():
 
         # --- Save prediction result to database ---
         description =info['description']
-        kategori = {pred.group}
+        kategori = pred_group
         disposalSteps = info['disposalSteps']
         created_at = datetime.now()
         update_at = datetime.now() # For initial creation, update_at is same as created_at
@@ -209,6 +209,8 @@ def predict():
         return jsonify({
             'Sampah': pred_class,
             'Kategori': pred_group,
+            'Deskripsi': info['description'],
+            'LangkahPembuangan': info['disposalSteps'],
             'message': 'Prediction saved successfully!'
         })
 
