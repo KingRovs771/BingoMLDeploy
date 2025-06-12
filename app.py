@@ -272,7 +272,7 @@ def get_history():
             conn.close()
 
 if __name__ == '__main__':
-    # It's recommended to run Flask in production with a production-ready WSGI server
+    # It's recommended to run Flask in  with production-ready WSGI server
     # like Gunicorn, not directly with app.run().
     # For development:
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=False)
