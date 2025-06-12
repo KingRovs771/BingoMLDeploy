@@ -66,6 +66,35 @@ group_map = {
     'Elektronik': 'B3'
 }
 
+
+kategori_info = {
+    'Organik': {
+        'description': 'Sampah organik berasal dari bahan-bahan alami yang dapat terurai secara biologis seperti sisa makanan, daun, dan ranting.',
+        'disposalSteps': [
+            'Pisahkan dari sampah anorganik',
+            'Buang di tempat sampah organik',
+            'Bisa digunakan untuk kompos jika memungkinkan'
+        ]
+    },
+    'Anorganik': {
+        'description': 'Sampah anorganik adalah sampah yang tidak dapat terurai secara alami seperti plastik, kaca, dan logam.',
+        'disposalSteps': [
+            'Pisahkan berdasarkan jenis material (plastik, kaca, logam)',
+            'Cuci bersih jika terkontaminasi makanan',
+            'Buang di tempat sampah daur ulang atau tempat sampah anorganik'
+        ]
+    },
+    'B3': {
+        'description': 'Sampah B3 mengandung bahan berbahaya seperti baterai, elektronik, dan bahan kimia yang memerlukan penanganan khusus.',
+        'disposalSteps': [
+            'Jangan dibuang bersama sampah biasa',
+            'Bawa ke tempat pengumpulan sampah B3',
+            'Hubungi layanan pengelolaan limbah berbahaya di daerah Anda'
+        ]
+    }
+}
+
+
 def prepare_image_from_bytes(image_bytes):
     img = Image.open(io.BytesIO(image_bytes)).convert('RGB')
     img = img.resize((224, 224))
@@ -130,7 +159,10 @@ def predict():
         pred_idx = np.argmax(preds, axis=1)[0]
         pred_class = class_names[pred_idx]
         pred_group = group_map.get(pred_class, 'Unknown')
-
+        info = kategori_info.get(pred_group, {
+            'description': 'Kategori tidak diketahui.',
+            'disposalSteps': ['Silakan periksa ulang jenis sampah ini.']
+        })
         # --- Save image to disk and get path ---
         # Generate a unique filename
         timestamp = datetime.now().strftime("%Y%m%d%H%M%S%f")
@@ -148,15 +180,17 @@ def predict():
         image_db_path = os.path.join(os.path.basename(UPLOAD_FOLDER), safe_filename)
 
         # --- Save prediction result to database ---
-        description = f"Prediction: {pred_class}, Category: {pred_group}"
+        description =info['description']
+        kategori = {pred.group}
+        disposalSteps = info['disposalSteps']
         created_at = datetime.now()
         update_at = datetime.now() # For initial creation, update_at is same as created_at
 
         # If user_uid is None, psycopg2 will insert NULL
         cursor.execute(
             """
-            INSERT INTO bingo_analyze (analyze_uid, user_uid, ip_user, description, image, created_at, update_at)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            INSERT INTO bingo_analyze (analyze_uid, user_uid, ip_user, description, image, created_at, update_at, kategori, disposalSteps)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
             """,
             (
                 f"ANALYZE-{timestamp}-{ip_user.replace('.', '-')}", # Example analyze_uid, adjust as needed
@@ -165,7 +199,9 @@ def predict():
                 description,
                 image_db_path,
                 created_at,
-                update_at
+                update_at,
+                kategori,
+                disposalSteps
             )
         )
         conn.commit()
@@ -202,7 +238,7 @@ def get_history():
     cursor = conn.cursor()
     try:
         cursor.execute(
-            "SELECT analyze_id, analyze_uid, user_uid, ip_user, description, image, created_at, update_at "
+            "SELECT analyze_id, analyze_uid, user_uid, ip_user, description, image, created_at, update_at, kategori, disposalSteps"
             "FROM bingo_analyze WHERE user_uid = %s ORDER BY created_at DESC",
             (user_uid,)
         )
